@@ -1,18 +1,38 @@
 # poppy/rpc/init.py
 
+from aiohttp_apispec import (docs, setup_aiohttp_apispec)
 from aiohttp import web
 
 def __init__(hub):
     app = web.Application()
+
+    # Hack - comment me out to see if pop decorator handling works
+    hub.rpc.init.router.__apispec__ = router.__apispec__
+
     routes = [
-            web.get('/', hub.rpc.init.router),
+        web.get('/', hub.rpc.init.router),
     ]
+
     app.add_routes(routes)
+
+    setup_aiohttp_apispec(
+        app=app,
+        title='Poppy Documentation',
+        version='v1',
+        swagger_path='/docs',
+        url='/docs/swagger.json'
+    )
+
     web.run_app(app,
                 host=hub.OPT['poppy']['addr'],
                 port=hub.OPT['poppy']['port'])
 
 
+@docs(
+    tags=['router'],
+    summary='Get things',
+    description='Get things',
+)
 async def router(hub, request):
     try:
         data = await request.json()
